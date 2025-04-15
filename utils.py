@@ -204,10 +204,11 @@ def custom_split(
     return train_df_adj, dev_df
 
 def process_data(df, target):
-     X = df.drop(target, axis=1).values
-     y = df[target].values
-
-     return X, y
+    X_df = df.drop(target, axis=1)
+    y = df[target].values
+    X = X_df.values
+    feature_names = X_df.columns.tolist()
+    return X, y, feature_names
 
 def evaluate(true_labels, predicted_scores):
 
@@ -220,13 +221,78 @@ def report_results(name, aucroc, aucpr, f):
     f.write(f"{name}'s AUC-PR score: %.3f\n" % aucpr)
     f.write("-" * 40 + "\n")
 
-def feature_engineering(X, y, cols):
-    "This function removes duplicates in X, y and drops cols with high data leakage in X."
-    df = pd.concat([X, y], axis=1)
+def features_engineering(X, y, cols_to_drop, feature_names):
+    # Convert X and y to DataFrame with proper headers
+    X_df = pd.DataFrame(X, columns=feature_names)
+    y_df = pd.Series(y, name='class')
+
+    # Combine into one DataFrame for deduplication
+    df = pd.concat([X_df, y_df], axis=1)
     df = df.drop_duplicates()
-    df = df.drop(columns=cols)
 
-    X = df.drop(columns=['class'])
-    y = df['class']
+    # Drop specified columns
+    df = df.drop(columns=cols_to_drop, errors='ignore')
 
-    return X, y
+    # Split again
+    y_clean = df['class'].to_numpy()
+    X_clean = df.drop(columns=['class']).to_numpy()
+    updated_feature_names = df.drop(columns=['class']).columns.tolist()
+
+    return X_clean, y_clean, updated_feature_names
+
+from imblearn.over_sampling import SMOTE
+import pandas as pd
+
+def generate_synthetic_data_smote(df, multiplier=2.0, target_col="class", random_state=42):
+    """
+    Generate synthetic data using repeated SMOTE to reach multiplier * original size.
+
+    Parameters:
+        df (pd.DataFrame): Original dataset.
+        multiplier (float): Desired total size = multiplier * len(df).
+        target_col (str): Name of the target column.
+        random_state (int): Random seed.
+
+    Returns:
+        tuple: (X_synth, y_synth)
+    """
+
+    X_orig = df.drop(columns=[target_col])
+    y_orig = df[target_col]
+    total_target_samples = int(len(df) * multiplier)
+
+    smote = SMOTE(random_state=random_state)
+    X_balanced, y_balanced = smote.fit_resample(X_orig, y_orig)
+
+    current_size = len(X_balanced)
+    X_list = [X_balanced]
+    y_list = [y_balanced]
+
+    while current_size < total_target_samples:
+        X_more, y_more = smote.fit_resample(X_orig, y_orig)
+        needed = min(len(X_more), total_target_samples - current_size)
+        X_list.append(X_more[:needed])
+        y_list.append(y_more[:needed])
+        current_size += needed
+
+    X_final = pd.concat(X_list, ignore_index=True)[:total_target_samples]
+    y_final = pd.concat([pd.Series(y) for y in y_list], ignore_index=True)[:total_target_samples]
+
+    return X_final, y_final
+
+def report_dataset_results(X_test, aucroc, aucpr, file_handle):
+    """
+    Write the total number of synthetic test samples to the report file.
+
+    Parameters:
+        X_test (pd.DataFrame): Synthetic test data.
+        aucroc (float): AUC-ROC score.
+        aucpr (float): AUC-PR score.
+        file_handle: Open file object to write into.
+    """
+    file_handle.write(f"Test Set Size: {len(X_test)}\n")
+    file_handle.write(f"AUC-ROC: {aucroc:.4f}\n")
+    file_handle.write(f"AUC-PR:  {aucpr:.4f}\n")
+    file_handle.write("-" * 40 + "\n")
+
+
