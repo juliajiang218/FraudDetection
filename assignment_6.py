@@ -47,23 +47,9 @@ def main():
     train_df, test_df = custom_split(df)
     X_train, y_train = process_data(train_df, target)
     X_test, y_test = process_data(test_df, target)
-    
-    """
-    devnet.main([
-    '--data_set', dataset_name,
-    '--input_path', '/deac/csc/classes/csc373/jianb21/assignment_6/data/',
-    '--data_format', '0',
-    '--network_depth', '2',
-    '--batch_size', '128',
-    '--epochs', '20',
-    '--known_outliers', '30',
-    '--cont_rate', '0.02',
-    '--output', '/deac/csc/classes/csc373/jianb21/assignment_6/outputs/evaluation/devnet_result.csv'
-    ])
-    """
 
     # start pipeline training
-    names = ['baseline', 'DevNet1']#, 'DevNet2', 'DevNet3']
+    names = ['baseline', 'DevNet1', 'DevNet2'] #, 'DevNet3']
     anomaly_detectors = [
        IsolationForest(n_estimators=100, max_samples=256, random_state=42), 
        CustomDevNet(
@@ -73,7 +59,16 @@ def main():
             epochs=50,
             random_seed=42,
             data_format=0
-       )]
+       ),
+       CustomDevNet(
+           architecture='shallow',  # 'shallow' by default (one hidden layer with 20 units)
+            batch_size=512,
+            nb_batch=20,
+            epochs=50,
+            random_seed=42,
+            data_format=0
+       )
+     ]
     
     pipeline = Pipeline(
         steps=[("scaler", None), ("detector", None)]
@@ -85,10 +80,14 @@ def main():
       f.write("=" * 40 + "\n")
       for i in range(len(names)):
           pipeline.set_params(detector=anomaly_detectors[i])
-          pipeline.fit(X_train)
           if (anomaly_detectors[i] == 'baseline'): 
+            pipeline.fit(X_train)
             predictions = -pipeline.score_samples(X_test)
           else:
+             if (anomaly_detectors[i] == 'DevNet2'):
+                cols = ['V4', 'V10', 'V11', 'V12', 'V14']
+                X_train, y_train = feature_engineering(X_train, y_train, cols)
+             pipeline.fit(X_train, y_train)
              predictions = pipeline.predict(X_test)
           # evaluate
           aucroc, aucpr = evaluate(y_test, predictions)

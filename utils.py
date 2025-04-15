@@ -219,3 +219,14 @@ def report_results(name, aucroc, aucpr, f):
     f.write(f"{name}'s AUC-ROC score: %.3f\n" % aucroc)
     f.write(f"{name}'s AUC-PR score: %.3f\n" % aucpr)
     f.write("-" * 40 + "\n")
+
+def feature_engineering(X, y, cols):
+    "This function removes duplicates in X, y and drops cols with high data leakage in X."
+    df = pd.concat([X, y], axis=1)
+    df = df.drop_duplicates()
+    df = df.drop(columns=cols)
+
+    X = df.drop(columns=['class'])
+    y = df['class']
+
+    return X, y
