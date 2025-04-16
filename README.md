@@ -2,6 +2,14 @@
 
 This project investigates and compares anomaly detection models for detecting fraudulent transactions using a normalized credit card dataset. It combines classical and deep learning-based techniques to identify patterns that indicate fraud, especially when the data is imbalanced or sparse.
 
+Authors: Julia Jiang and Fiona Zhang
+
+---
+## Link to our amazing GitHub Repository!
+
+```
+https://github.com/juliajiang218/DM-assignment6.git
+```
 ---
 
 ##  What This Project Does
@@ -17,6 +25,14 @@ The pipeline includes:
 
 ---
 
+## Additional Dependency Required:
+
+```
+pip install imbalanced-learn
+```
+
+---
+
 ## Directory Structure
 
 ```
@@ -29,8 +45,10 @@ ASSIGNMENT_6/
 │   ├── evaluation/
 │   │   ├── result.txt                         # Evaluation metrics for all models
 │   │   └── unseen_data_performance.txt        # Best model tested on synthetic datasets
-├── pipeline/
-│   └── best_model.pkl                         # Serialized best-performing model (DevNet1)
+│   ├── pipeline/
+│   │   └── best_model.pkl                     # Serialized best-performing model (DevNet1)
+│   ├── report.pdf                             # progress report
+│   └── literature_survey.pdf                  # literature survey
 ├── scripts/
 │   ├── assignment_6.py                        # Main pipeline script
 │   ├── devnet_class.py                        # DevNet architecture class
