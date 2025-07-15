@@ -1,4 +1,4 @@
-# Assignment 6 — Deep Anomaly Detection for Credit Card Fraud
+# Deep Anomaly Detection for Credit Card Fraud
 
 This project investigates and compares anomaly detection models for detecting fraudulent transactions using a normalized credit card dataset. It combines classical and deep learning-based techniques to identify patterns that indicate fraud, especially when the data is imbalanced or sparse.
 
@@ -36,7 +36,7 @@ pip install imbalanced-learn
 ## Directory Structure
 
 ```
-ASSIGNMENT_6/
+FraudDetection/
 ├── data/
 │   └── creditcardfraud_normalised.csv         # Input dataset
 ├── outputs/
@@ -115,4 +115,4 @@ This tests how well the model generalizes to *unseen distributions*, especially 
 
 ## Disclaimer & Licensing
 
-This script is provided for CSC373-A Assignment 6. Unauthorized reproduction, distribution, or use is strictly prohibited without the consent of the authors. See the top of `assignment_6.py` for full legal terms.
+This script is provided for educational purposes. Unauthorized reproduction, distribution, or use is strictly prohibited without the consent of the authors. See the top of `assignment_6.py` for full legal terms.
